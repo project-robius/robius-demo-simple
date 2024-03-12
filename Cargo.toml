@@ -1,0 +1,11 @@
+[package]
+name = "auth_test"
+version = "0.1.0"
+authors = ["Kevin Boos <kevinaboos@gmail.com>"]
+edition = "2021"
+description = "Simple test of Robius authentication plus Makepad"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+makepad-widgets = { path = "../makepad/widgets" }
+robius-authentication = { path = "../robius-authentication" }
