@@ -347,7 +347,7 @@ dependencies = [
  "cesu8",
  "cfg-if",
  "combine",
- "jni-sys 0.3.0",
+ "jni-sys",
  "log",
  "thiserror",
  "walkdir",
@@ -359,10 +359,6 @@ name = "jni-sys"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8eaf4bc02d17cbdd7ff4c7438cafcdf7fb9a4613313ad11b4f8fefe7d3fa0130"
-
-[[package]]
-name = "jni-sys"
-version = "0.4.0"
 
 [[package]]
 name = "libc"
@@ -500,7 +496,6 @@ version = "0.4.0"
 name = "makepad-platform"
 version = "0.6.0"
 dependencies = [
- "jni-sys 0.4.0",
  "makepad-futures",
  "makepad-futures-legacy",
  "makepad-http",
@@ -732,6 +727,7 @@ dependencies = [
 [[package]]
 name = "robius-authentication"
 version = "0.1.0"
+source = "git+https://github.com/project-robius/robius-authentication#a5d7e6ac4ebf81e740ef09e22e3b69215fae6562"
 dependencies = [
  "block2",
  "cfg-if",

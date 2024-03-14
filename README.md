@@ -5,18 +5,16 @@ This is a simple Makepad app that tests the [`robius-authentication`](https://gi
 ## Building and running
 
 ### Local build set up
-Currently this expects local copies of two other sibling directories, `makepad` and `robius-authentication`, with a directory structure like so:
+Currently this expects a local copy of the `makepad` project as a sibling directory, with a directory structure like so:
 ```
 projects
-├── auth_test
 ├── makepad
-└── robius-authentication
+└── auth_test
 ```
 
-The `makepad` project should be checked out to the [latest commit of branch `rik`](https://github.com/makepad/makepad/tree/rik),
-while the `robius-authentication` project should be checked out to [this commit of branch `main`](https://github.com/project-robius/robius-authentication/commit/a5d7e6ac4ebf81e740ef09e22e3b69215fae6562).
+The `makepad` project should be checked out to the [latest commit of branch `rik`](https://github.com/makepad/makepad/tree/rik).
 
-In the near future we will specify direct git dependencies once the rate of change slows.
+In the near future we will specify direct git dependencies on `makepad` once its build tool is more stable.
 
 ### Compiling and running
 

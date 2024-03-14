@@ -8,4 +8,4 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 makepad-widgets = { path = "../makepad/widgets" }
-robius-authentication = { path = "../robius-authentication" }
+robius-authentication = { git = "https://github.com/project-robius/robius-authentication" } 
