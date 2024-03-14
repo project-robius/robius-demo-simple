@@ -14,7 +14,7 @@ projects
 ```
 
 The `makepad` project should be checked out to the [latest commit of branch `rik`](https://github.com/makepad/makepad/tree/rik),
-while the `robius-authentication` project should be checked out to [latest commit of branch `cargo_makepad_build`](https://github.com/project-robius/robius-authentication/tree/cargo_makepad_build).
+while the `robius-authentication` project should be checked out to [this commit of branch `main`](https://github.com/project-robius/robius-authentication/commit/a5d7e6ac4ebf81e740ef09e22e3b69215fae6562).
 
 In the near future we will specify direct git dependencies once the rate of change slows.
 

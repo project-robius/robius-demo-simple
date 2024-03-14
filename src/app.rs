@@ -82,11 +82,11 @@ impl MatchEvent for App {
 
             let raw_context = {
                 #[cfg(target_os = "android")] {
-                    use robius_authentication::{ActivityObject, JavaVM, JObject};
-                    let raw_context = unsafe { (
-                        JavaVM::from_raw(get_java_vm().cast()).unwrap(),
-                        ActivityObject::JObject(JObject::from_raw(get_activity().cast())),
-                    ) };
+                    use robius_authentication::jni::{JavaVM, JObject};
+                    let jvm = unsafe { JavaVM::from_raw(get_java_vm().cast()).unwrap() };
+                    let activity = unsafe { JObject::from_raw(get_activity().cast()) };
+                    let activity_global_ref = jvm.get_env().unwrap().new_global_ref(activity).unwrap();
+                    let raw_context = (jvm, activity_global_ref);
                     raw_context
                 }
                 #[cfg(not(target_os = "android"))] {
