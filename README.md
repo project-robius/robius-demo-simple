@@ -1,43 +1,38 @@
-# auth_test
+# robius-demo
 
-This is a simple Makepad app that tests the [`robius-authentication`](https://github.com/project-robius/robius-authentication) crate.
+This is a simple Makepad app that demonstrates various Robius platform abstraction crates:
+* [`robius-authentication`](https://github.com/project-robius/robius-authentication)
+* [`robius-open`](https://github.com/project-robius/robius-open)
 
 ## Building and running
 
-### Local build set up
-Currently this expects a local copy of the `makepad` project as a sibling directory, with a directory structure like so:
-```
-projects
-├── makepad
-└── auth_test
-```
-
-The `makepad` project should be checked out to the [latest commit of branch `rik`](https://github.com/makepad/makepad/tree/rik).
-
-In the near future we will specify direct git dependencies on `makepad` once its build tool is more stable.
-
-### Compiling and running
-
-#### Native desktop builds
+### Native desktop builds
 On native desktop, simply run:
 ```sh
 cargo run
 ```
 
-#### Cross-compiling for Android
-To build for Android, you need to first install the Android SDK + NDK via the cargo makepad tool (you only need to run this once):
+### Cross-compiling for Android
+To build for Android, you need to first install the `cargo makepad` build tool,
+and then use it to installe the Android SDK + NDK.
 ```sh
-cargo run --manifest-path ../makepad/tools/cargo_makepad/Cargo.toml --release -- android install-toolchain --full-ndk
+cargo install --force --locked --git https://github.com/makepad/makepad.git --branch rik cargo-makepad
 ```
-
-Then, to build and run this `auth_test` app, do the following:
 ```sh
-cargo run --manifest-path ../makepad/tools/cargo_makepad/Cargo.toml --release -- android run -p auth_test --release
+cargo makepad android install-toolchain --full-ndk
+```
+> You only need to run the above commands once on your build machine.
+
+-------------------------------------------------------------------------------
+
+Then, to build and run this `robius-demo-simple` app, do the following:
+```sh
+cargo makepad android run -p robius-demo-simple --release
 ```
 
 Note that the above `android run` command will look for a running Android emulator or a physically-connected Android device.
 
 
------------------
+### Interactive demo/test functionality
 
-Once `auth_test` is running, you should see an `Authenticate` button -- click that to bring up the platform-native authentication prompt.
+Once the demo app is running, you should see a simple view with several labeled buttons. Click whichever buttons that corresponds to the functionality you wish to test out.

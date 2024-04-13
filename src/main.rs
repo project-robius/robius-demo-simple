@@ -2,5 +2,5 @@
 // as dll (mobile / wasm) and some require to be built as executable
 // unfortunately cargo doesn't facilitate this without a main.rs stub
 fn main(){
-    auth_test::app::app_main()
+    robius_demo_simple::app::app_main()
 }

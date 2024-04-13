@@ -1,14 +1,20 @@
 use makepad_widgets::*;
 
-#[cfg(target_os = "android")]
-use makepad_widgets::makepad_platform::os::linux::android::android_jni::{get_java_vm, get_activity};
-
 use robius_authentication::{BiometricStrength, PolicyBuilder};
 
 live_design!{
     import makepad_draw::shader::std::*;
     import makepad_widgets::base::*;
     import makepad_widgets::theme_desktop_dark::*; 
+
+    LineH = <RoundedView> {
+        width: Fill,
+        height: 2,
+        margin: 0.0
+        padding: 0.0,
+        spacing: 0.0
+        draw_bg: {color: #f}
+    }
 
     App = {{App}} {
 
@@ -20,28 +26,67 @@ live_design!{
             draw_bg: {
                 fn pixel(self) -> vec4 {
                     //return #000
-                    return mix(#7, #3, self.pos.y);
+                    return mix(#a, #5, self.pos.y);
                 }
             }
             
-            body = <View>{
+            body = <ScrollXYView> {
                 flow: Down,
                 spacing: 20,
-                align: {
-                    x: 0.5,
-                    y: 0.5
-                },
-                
-                auth_button = <Button> {
-                    text: "Authenticate"
+                padding: 15.0,
+                align: { x: 0.5, y: 0.5 },
+
+                <Label> {
+                    text: "Robius Interactive Simple Demo App"
+                    draw_text: { color: #e, text_style: { font_size: 16.0 } }
+
                 }
-                auth_label = <Label> {
-                    draw_text: {
-                        color: #f
-                    },
-                    text: "Click the above button."
+                
+                <LineH> { }
+
+                auth_view = <View> {
+                    flow: Right,
+                    width: Fit, height: Fit,
+                    spacing: 20,
+                    align: { y: 0.5 },
+
+                    auth_input = <TextInput> {
+                        width: Fit, height: Fit
+                        draw_text: { color: #f, text_style: { font_size: 12 } }
+                        empty_message: "Enter authentication prompt..."
+                    }
+
+                    auth_button = <Button> {
+                        text: "Authenticate"
+                    }
+
+                    auth_result = <Label> {
+                        width: Fit, height: Fit
+                        draw_text: { color: #f, text_style: { font_size: 12 } }
+                        text: "Waiting to authenticate..."
+                    }
                 }
 
+                <LineH> { }
+
+                open_view = <View> {
+                    flow: Right,
+                    width: Fit, height: Fit,
+                    align: { y: 0.5 },
+                    spacing: 20,
+
+                    open_input = <TextInput> {
+                        width: Fit, height: Fit
+                        draw_text: { color: #f, text_style: { font_size: 12 } }
+                        empty_message: "Enter URI..."
+                    }
+
+                    open_button = <Button> {
+                        text: "Open"
+                    }
+                }
+                
+                <LineH> { }
                 
             }
         }
@@ -61,46 +106,66 @@ impl LiveRegister for App {
     }
 }
 
+impl App {
+    fn handle_auth_action(&mut self, cx: &mut Cx, actions: &Actions) {
+        let auth_text_input = self.ui.text_input(id!(auth_input));
+        let triggered_msg = if let Some(s) = auth_text_input.return_key(&actions) {
+            s
+        } else if self.ui.button(id!(auth_button)).clicked(&actions) {
+            auth_text_input.text()
+        } else {
+            return
+        };
+        let message = if triggered_msg.is_empty() {
+            // The system will preface a message with "This app wants to..."
+            "authenticate with biometrics"
+        } else {
+            triggered_msg.as_str()
+        };
+    
+        let label = self.ui.label(id!(auth_result));
+        log!("Authenticating with message {triggered_msg:?}");
+
+        let auth_policy = PolicyBuilder::new()
+            .biometrics(Some(BiometricStrength::Strong))
+            .password(true)
+            .watch(true) // required in order to use the password option
+            .build()
+            .expect("invalid policy configuration");
+
+        // label.set_text_and_redraw(cx, "Waiting to authenticate...");
+        
+        let context = robius_authentication::Context::new(crate::get_raw_context());
+        let auth_result = context.blocking_authenticate(
+            message,
+            &auth_policy,
+        );
+
+        label.set_text_and_redraw(cx, &format!("Result: {auth_result:?}"));
+    }
+
+    fn handle_open_action(&mut self, _cx: &mut Cx, actions: &Actions) {
+        let open_text_input = self.ui.text_input(id!(open_input));
+        let uri = if let Some(s) = open_text_input.return_key(&actions) {
+            s
+        } else if self.ui.button(id!(open_button)).clicked(&actions) {
+            open_text_input.text()
+        } else {
+            return
+        };
+        if uri.is_empty() {
+            log!("Ignoring attempt to open empty URI.");
+            return;
+        };
+
+        log!("Opening URI: {uri:?}");
+        robius_open::Uri::new(&uri).open();
+    }
+}
 impl MatchEvent for App {
-    fn handle_actions(&mut self, cx: &mut Cx, actions:&Actions){
-        if self.ui.button(id!(auth_button)).clicked(&actions) {
-            let label = self.ui.label(id!(auth_label));
-            log!("CLICKED auth button.");
-
-            let auth_policy = PolicyBuilder::new()
-                .biometrics(Some(BiometricStrength::Strong))
-                .password(true)
-                .watch(true) // required in order to use the password option
-                .build()
-                .expect("invalid policy configuration");
-
-            // The system will preface the message with "This app wants to..."
-            let message = "authenticate with biometrics";
-
-            label.set_text("Waiting to authenticate...");
-            label.redraw(cx);
-
-            let raw_context = {
-                #[cfg(target_os = "android")] {
-                    use robius_authentication::jni::{JavaVM, JObject};
-                    let jvm = unsafe { JavaVM::from_raw(get_java_vm().cast()).unwrap() };
-                    let activity = unsafe { JObject::from_raw(get_activity().cast()) };
-                    let activity_global_ref = jvm.get_env().unwrap().new_global_ref(activity).unwrap();
-                    let raw_context = (jvm, activity_global_ref);
-                    raw_context
-                }
-                #[cfg(not(target_os = "android"))] {
-                    ()
-                }
-            };
-            let context = robius_authentication::Context::new(raw_context);
-            let auth_result = context.blocking_authenticate(
-                message,
-                &auth_policy,
-            );
-
-            label.set_text_and_redraw(cx, &format!("Result: {auth_result:?}"));
-        }
+    fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions) {
+        self.handle_auth_action(cx, actions);
+        self.handle_open_action(cx, actions);
     }
 }
 

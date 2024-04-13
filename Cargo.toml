@@ -1,11 +1,13 @@
 [package]
-name = "auth_test"
+name = "robius-demo-simple"
 version = "0.1.0"
 authors = ["Kevin Boos <kevinaboos@gmail.com>"]
 edition = "2021"
-description = "Simple test of Robius authentication plus Makepad"
+description = "Simple demo of Robius platform abstraction crates from a Makepad app"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-makepad-widgets = { path = "../makepad/widgets" }
+makepad-widgets = { git = "https://github.com/makepad/makepad", branch = "rik" }
+
 robius-authentication = { git = "https://github.com/project-robius/robius-authentication" } 
+robius-open = { git = "https://github.com/project-robius/robius-open" } 
