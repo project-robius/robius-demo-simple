@@ -114,7 +114,7 @@ impl App {
         use robius_authentication::{BiometricStrength, PolicyBuilder};
 
         let auth_text_input = self.ui.text_input(id!(auth_input));
-        let triggered_msg = if let Some(s) = auth_text_input.return_key(&actions) {
+        let triggered_msg = if let Some(s) = auth_text_input.returned(&actions) {
             s
         } else if self.ui.button(id!(auth_button)).clicked(&actions) {
             auth_text_input.text()
@@ -155,7 +155,7 @@ impl App {
     #[cfg(feature = "open")]
     fn handle_open_action(&mut self, _cx: &mut Cx, actions: &Actions) {
         let open_text_input = self.ui.text_input(id!(open_input));
-        let uri = if let Some(s) = open_text_input.return_key(&actions) {
+        let uri = if let Some(s) = open_text_input.returned(&actions) {
             s
         } else if self.ui.button(id!(open_button)).clicked(&actions) {
             open_text_input.text()
