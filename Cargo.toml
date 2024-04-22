@@ -9,5 +9,10 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 makepad-widgets = { git = "https://github.com/makepad/makepad", branch = "rik" }
 
-robius-authentication = { git = "https://github.com/project-robius/robius-authentication" } 
-robius-open = { git = "https://github.com/project-robius/robius-open" } 
+robius-authentication = { git = "https://github.com/project-robius/robius-authentication", optional = true } 
+robius-open = { git = "https://github.com/project-robius/robius-open", optional = true } 
+
+[features]
+default = ["authentication"] # "robius-open" doesn't yet build on android
+authentication = ["dep:robius-authentication"]
+open = ["dep:robius-open"]

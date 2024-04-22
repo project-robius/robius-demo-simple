@@ -1,7 +1,5 @@
 use makepad_widgets::*;
 
-use robius_authentication::{BiometricStrength, PolicyBuilder};
-
 live_design!{
     import makepad_draw::shader::std::*;
     import makepad_widgets::base::*;
@@ -45,10 +43,11 @@ live_design!{
                 <LineH> { }
 
                 auth_view = <View> {
-                    flow: Right,
-                    width: Fit, height: Fit,
-                    spacing: 20,
-                    align: { y: 0.5 },
+                    flow: Down,
+                    width: Fill, height: Fit,
+                    padding: 10.0,
+                    spacing: 10,
+                    align: { x: 0.5, y: 0.5 },
 
                     auth_input = <TextInput> {
                         width: Fit, height: Fit
@@ -65,15 +64,17 @@ live_design!{
                         draw_text: { color: #f, text_style: { font_size: 12 } }
                         text: "Waiting to authenticate..."
                     }
+
+                    <LineH> { }
                 }
 
-                <LineH> { }
 
                 open_view = <View> {
-                    flow: Right,
-                    width: Fit, height: Fit,
-                    align: { y: 0.5 },
-                    spacing: 20,
+                    flow: Down,
+                    width: Fill, height: Fit,
+                    padding: 10.0,
+                    spacing: 10,
+                    align: { x: 0.5, y: 0.5 },
 
                     open_input = <TextInput> {
                         width: Fit, height: Fit
@@ -84,9 +85,10 @@ live_design!{
                     open_button = <Button> {
                         text: "Open"
                     }
+
+                    <LineH> { }
                 }
                 
-                <LineH> { }
                 
             }
         }
@@ -107,7 +109,10 @@ impl LiveRegister for App {
 }
 
 impl App {
+    #[cfg(feature = "authentication")]
     fn handle_auth_action(&mut self, cx: &mut Cx, actions: &Actions) {
+        use robius_authentication::{BiometricStrength, PolicyBuilder};
+
         let auth_text_input = self.ui.text_input(id!(auth_input));
         let triggered_msg = if let Some(s) = auth_text_input.return_key(&actions) {
             s
@@ -126,6 +131,8 @@ impl App {
         let label = self.ui.label(id!(auth_result));
         log!("Authenticating with message {triggered_msg:?}");
 
+        #[cfg(not(feature = "authentication"))]
+        warning!("Authentication feature is disabled.");
         let auth_policy = PolicyBuilder::new()
             .biometrics(Some(BiometricStrength::Strong))
             .password(true)
@@ -144,6 +151,8 @@ impl App {
         label.set_text_and_redraw(cx, &format!("Result: {auth_result:?}"));
     }
 
+
+    #[cfg(feature = "open")]
     fn handle_open_action(&mut self, _cx: &mut Cx, actions: &Actions) {
         let open_text_input = self.ui.text_input(id!(open_input));
         let uri = if let Some(s) = open_text_input.return_key(&actions) {
@@ -163,8 +172,23 @@ impl App {
     }
 }
 impl MatchEvent for App {
+    fn handle_startup(&mut self, _cx: &mut Cx) {
+        #[cfg(not(feature = "authentication"))] {
+            warning!("The `authentication` feature is disabled.");
+            self.ui.view(id!(auth_view)).set_visible(false);
+        }
+
+        #[cfg(not(feature = "open"))] {
+            warning!("The `open` feature is disabled.");
+            self.ui.view(id!(open_view)).set_visible(false);
+        }
+    }
+
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions) {
+        #[cfg(feature = "authentication")]
         self.handle_auth_action(cx, actions);
+
+        #[cfg(feature = "open")]
         self.handle_open_action(cx, actions);
     }
 }
