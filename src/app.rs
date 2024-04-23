@@ -168,11 +168,15 @@ impl App {
         };
 
         log!("Opening URI: {uri:?}");
-        robius_open::Uri::new(&uri).open();
+        if let Err(e) = robius_open::Uri::new(&uri).open() {
+            error!("Failed to open URI: {e:?}");
+        }
     }
 }
 impl MatchEvent for App {
     fn handle_startup(&mut self, _cx: &mut Cx) {
+        crate::init_android_env();
+
         #[cfg(not(feature = "authentication"))] {
             warning!("The `authentication` feature is disabled.");
             self.ui.view(id!(auth_view)).set_visible(false);
