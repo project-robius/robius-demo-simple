@@ -739,7 +739,7 @@ dependencies = [
 [[package]]
 name = "robius-android-env"
 version = "0.1.0"
-source = "git+https://github.com/project-robius/robius-android-env#e76610ec17b1f19203d8e1c8c758f6bc7dcb19c8"
+source = "git+https://github.com/project-robius/robius-android-env#45acdf70ebc507a2ac017add07bec9ecd7bafa51"
 dependencies = [
  "jni",
 ]
@@ -775,12 +775,11 @@ dependencies = [
 [[package]]
 name = "robius-open"
 version = "0.1.0"
-source = "git+https://github.com/project-robius/robius-open#d9f9fd6c50ceba0183a1dda578524a5661400b03"
+source = "git+https://github.com/project-robius/robius-open#aa216088cf297ddf460a2594649992a044974463"
 dependencies = [
  "cfg-if",
  "icrate",
  "jni",
- "log",
  "objc2",
  "robius-android-env",
 ]
