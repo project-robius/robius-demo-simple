@@ -142,7 +142,7 @@ impl App {
 
         // label.set_text_and_redraw(cx, "Waiting to authenticate...");
         
-        let context = robius_authentication::Context::new(crate::get_raw_context());
+        let context = robius_authentication::Context::new(());
         let auth_result = context.blocking_authenticate(
             message,
             &auth_policy,
