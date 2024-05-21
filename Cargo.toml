@@ -7,17 +7,26 @@ description = "Simple demo of Robius platform abstraction crates from a Makepad 
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-# makepad-widgets = { git = "https://github.com/makepad/makepad", branch = "rik" }
-makepad-widgets = { path = "../makepad/widgets" }
+makepad-widgets = { git = "https://github.com/makepad/makepad", branch = "rik" }
 
 robius-authentication = { git = "https://github.com/project-robius/robius-authentication", optional = true }
 robius-open = { git = "https://github.com/project-robius/robius-open", optional = true }
 
-# [target.'cfg(target_os = "android")'.dependencies]
-# # robius-android-env = { git = "https://github.com/project-robius/robius-android-env", features = [ "set" ] }
-robius-android-env = { path = "../robius-android-env", features = [ "makepad" ] }
+## Currently we must explicitly tell robius-android-env that we're building a Makepad app.
+[target.'cfg(target_os = "android")'.dependencies]
+robius-android-env = { version = "0.1.0", features = [ "makepad" ] }
 
 [features]
 default = ["authentication", "open"]
 authentication = ["dep:robius-authentication"]
 open = ["dep:robius-open"]
+
+
+## Temp: ensure all crates in the dependency tree are using the published version of robius-android-env.
+[patch.'https://github.com/project-robius/robius-android-env']
+robius-android-env = "0.1.0"
+
+## Temp: ensure all crates in the dependency tree are using the version of makepad-android-state
+##       that is identical to the one being used by makepad-widgets above.
+[patch.crates-io]
+makepad-android-state = { git = "https://github.com/makepad/makepad", branch = "rik" }
