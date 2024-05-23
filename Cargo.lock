@@ -826,9 +826,9 @@ name = "robius-demo-simple"
 version = "0.1.0"
 dependencies = [
  "makepad-widgets",
- "robius-android-env",
  "robius-authentication",
  "robius-open",
+ "robius-use-makepad",
 ]
 
 [[package]]
@@ -840,6 +840,15 @@ dependencies = [
  "icrate",
  "jni",
  "objc2",
+ "robius-android-env",
+]
+
+[[package]]
+name = "robius-use-makepad"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1dc404c4111c88cd9f8a409b2831d13fe93e5242c95939a3852e7e7d675f89c4"
+dependencies = [
  "robius-android-env",
 ]
 
