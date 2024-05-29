@@ -111,7 +111,7 @@ impl LiveRegister for App {
 impl App {
     #[cfg(feature = "authentication")]
     fn handle_auth_action(&mut self, cx: &mut Cx, actions: &Actions) {
-        use robius_authentication::{BiometricStrength, PolicyBuilder};
+        use robius_authentication::{AndroidText, BiometricStrength, PolicyBuilder, Text};
 
         let auth_text_input = self.ui.text_input(id!(auth_input));
         let triggered_msg = if let Some(s) = auth_text_input.returned(&actions) {
@@ -144,7 +144,15 @@ impl App {
         
         let context = robius_authentication::Context::new(());
         let auth_result = context.blocking_authenticate(
-            message,
+            Text {
+                android: AndroidText {
+                    title: message,
+                    subtitle: None,
+                    description: None,
+                },
+                apple: message,
+                windows: message,
+            },
             &auth_policy,
         );
 
