@@ -151,7 +151,8 @@ impl App {
                     description: None,
                 },
                 apple: message,
-                windows: message,
+                windows: robius_authentication::WindowsText::new("Authentication Request", message)
+                    .expect("authentication message must be less than 1024 characters"),
             },
             &auth_policy,
         );
