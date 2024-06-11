@@ -849,7 +849,7 @@ dependencies = [
 [[package]]
 name = "robius-authentication"
 version = "0.1.0"
-source = "git+https://github.com/project-robius/robius-authentication#0a086b30657aa07ce8f95480f3511dc975c5eaa4"
+source = "git+https://github.com/project-robius/robius-authentication#280c38b749a2c181430236d936de480b1bcee4a4"
 dependencies = [
  "android-build",
  "block2 0.5.1",
