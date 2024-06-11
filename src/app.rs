@@ -151,7 +151,7 @@ impl App {
                     description: None,
                 },
                 apple: message,
-                windows: robius_authentication::WindowsText::new("Authentication Request", message),
+                windows: robius_authentication::WindowsText::new_truncated("Authentication Request", message),
             },
             &auth_policy,
         );
