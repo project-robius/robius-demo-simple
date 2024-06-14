@@ -1,9 +1,10 @@
 use makepad_widgets::*;
+use robius_location::{Error, Location};
 
-live_design!{
+live_design! {
     import makepad_draw::shader::std::*;
     import makepad_widgets::base::*;
-    import makepad_widgets::theme_desktop_dark::*; 
+    import makepad_widgets::theme_desktop_dark::*;
 
     LineH = <RoundedView> {
         width: Fill,
@@ -20,14 +21,14 @@ live_design!{
             show_bg: true
             width: Fill,
             height: Fill
-            
+
             draw_bg: {
                 fn pixel(self) -> vec4 {
                     //return #000
                     return mix(#a, #5, self.pos.y);
                 }
             }
-            
+
             body = <ScrollXYView> {
                 flow: Down,
                 spacing: 20,
@@ -39,7 +40,7 @@ live_design!{
                     draw_text: { color: #e, text_style: { font_size: 16.0 } }
 
                 }
-                
+
                 <LineH> { }
 
                 auth_view = <View> {
@@ -68,6 +69,29 @@ live_design!{
                     <LineH> { }
                 }
 
+                location_view = <View> {
+                    flow: Down,
+                    width: Fill, height: Fit,
+                    padding: 10.0,
+                    spacing: 10,
+                    align: { x: 0.5, y: 0.5 },
+
+                    start_location_button = <Button> {
+                        text: "Start location updates"
+                    }
+
+                    stop_location_button = <Button> {
+                        text: "Stop location updates"
+                    }
+
+                    location = <Label> {
+                        width: Fit, height: Fit
+                        draw_text: { color: #f, text_style: { font_size: 12 } }
+                        text: "Waiting to start location updates..."
+                    }
+
+                    <LineH> { }
+                }
 
                 open_view = <View> {
                     flow: Down,
@@ -88,18 +112,21 @@ live_design!{
 
                     <LineH> { }
                 }
-                
-                
+
+
             }
         }
     }
-} 
-     
-app_main!(App); 
- 
+}
+
+app_main!(App);
+
 #[derive(Live, LiveHook)]
 pub struct App {
-    #[live] ui: WidgetRef,
+    #[live]
+    ui: WidgetRef,
+    #[cfg(feature = "location")]
+    location_manager: Option<robius_location::Manager>,
 }
 
 impl LiveRegister for App {
@@ -119,7 +146,7 @@ impl App {
         } else if self.ui.button(id!(auth_button)).clicked(&actions) {
             auth_text_input.text()
         } else {
-            return
+            return;
         };
         let message = if triggered_msg.is_empty() {
             // The system will preface a message with "This app wants to..."
@@ -127,7 +154,7 @@ impl App {
         } else {
             triggered_msg.as_str()
         };
-    
+
         let label = self.ui.label(id!(auth_result));
         log!("Authenticating with message {triggered_msg:?}");
 
@@ -141,7 +168,7 @@ impl App {
             .expect("invalid policy configuration");
 
         // label.set_text_and_redraw(cx, "Waiting to authenticate...");
-        
+
         let context = robius_authentication::Context::new(());
         let auth_result = context.blocking_authenticate(
             Text {
@@ -151,7 +178,10 @@ impl App {
                     description: None,
                 },
                 apple: message,
-                windows: robius_authentication::WindowsText::new_truncated("Authentication Request", message),
+                windows: robius_authentication::WindowsText::new_truncated(
+                    "Authentication Request",
+                    message,
+                ),
             },
             &auth_policy,
         );
@@ -159,6 +189,32 @@ impl App {
         label.set_text_and_redraw(cx, &format!("Result: {auth_result:?}"));
     }
 
+    #[cfg(feature = "location")]
+    fn handle_location(&mut self, cx: &mut Cx, actions: &Actions) {
+        struct Handler;
+
+        impl robius_location::Handler for Handler {
+            fn handle(&self, location: Location<'_>) {
+                log!("received location: {:?}", location.coordinates());
+            }
+
+            fn error(&self, _error: Error) {
+                log!("received error");
+            }
+        }
+
+        log!("handling");
+        if self.ui.button(id!(start_location_button)).clicked(&actions) {
+            log!("clicked");
+            let location_manager = robius_location::Manager::new(Handler);
+            location_manager.request_authorization();
+            std::thread::sleep(std::time::Duration::from_secs(2));
+            location_manager.start_updates();
+            self.location_manager = Some(location_manager);
+        } else if self.ui.button(id!(stop_location_button)).clicked(&actions) {
+            self.location_manager.take().unwrap().stop_updates()
+        }
+    }
 
     #[cfg(feature = "open")]
     fn handle_open_action(&mut self, _cx: &mut Cx, actions: &Actions) {
@@ -168,7 +224,7 @@ impl App {
         } else if self.ui.button(id!(open_button)).clicked(&actions) {
             open_text_input.text()
         } else {
-            return
+            return;
         };
         if uri.is_empty() {
             log!("Ignoring attempt to open empty URI.");
@@ -183,12 +239,14 @@ impl App {
 }
 impl MatchEvent for App {
     fn handle_startup(&mut self, _cx: &mut Cx) {
-        #[cfg(not(feature = "authentication"))] {
+        #[cfg(not(feature = "authentication"))]
+        {
             warning!("The `authentication` feature is disabled.");
             self.ui.view(id!(auth_view)).set_visible(false);
         }
 
-        #[cfg(not(feature = "open"))] {
+        #[cfg(not(feature = "open"))]
+        {
             warning!("The `open` feature is disabled.");
             self.ui.view(id!(open_view)).set_visible(false);
         }
@@ -197,6 +255,9 @@ impl MatchEvent for App {
     fn handle_actions(&mut self, cx: &mut Cx, actions: &Actions) {
         #[cfg(feature = "authentication")]
         self.handle_auth_action(cx, actions);
+
+        #[cfg(feature = "location")]
+        self.handle_location(cx, actions);
 
         #[cfg(feature = "open")]
         self.handle_open_action(cx, actions);
@@ -208,4 +269,4 @@ impl AppMain for App {
         self.match_event(cx, event);
         self.ui.handle_event(cx, event, &mut Scope::empty());
     }
-} 
+}

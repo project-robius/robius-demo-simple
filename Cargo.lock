@@ -873,8 +873,22 @@ version = "0.1.0"
 dependencies = [
  "makepad-widgets",
  "robius-authentication",
+ "robius-location",
  "robius-open",
  "robius-use-makepad",
+]
+
+[[package]]
+name = "robius-location"
+version = "0.1.0"
+dependencies = [
+ "cfg-if",
+ "icrate",
+ "jni",
+ "log",
+ "makepad-widgets",
+ "objc2",
+ "robius-android-env",
 ]
 
 [[package]]

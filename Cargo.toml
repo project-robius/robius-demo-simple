@@ -10,12 +10,14 @@ license = "MIT OR Apache-2.0"
 makepad-widgets = { git = "https://github.com/makepad/makepad", branch = "rik" }
 
 robius-authentication = { git = "https://github.com/project-robius/robius-authentication", optional = true }
+robius-location = { path = "../robius-location", optional = true }
 robius-open = { git = "https://github.com/project-robius/robius-open", optional = true }
 
 ## Including this crate automatically configures all `robius-*` crates to work with Makepad.
 robius-use-makepad = "0.1.0"
 
 [features]
-default = ["authentication", "open"]
+default = ["authentication", "location", "open"]
 authentication = ["dep:robius-authentication"]
+location = ["dep:robius-location"]
 open = ["dep:robius-open"]
