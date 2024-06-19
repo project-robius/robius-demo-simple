@@ -206,7 +206,7 @@ impl App {
         log!("handling");
         if self.ui.button(id!(start_location_button)).clicked(&actions) {
             log!("clicked");
-            let location_manager = robius_location::Manager::new(Handler);
+            let mut location_manager = robius_location::Manager::new(Handler);
             location_manager.request_authorization();
             std::thread::sleep(std::time::Duration::from_secs(2));
             location_manager.start_updates();
