@@ -11,7 +11,6 @@ makepad-widgets = { git = "https://github.com/makepad/makepad", branch = "rik" }
 
 robius-authentication = { git = "https://github.com/project-robius/robius-authentication", optional = true }
 robius-location = { git = "https://github.com/project-robius/robius-location", optional = true }
-# robius-location = { path = "../robius-location", optional = true }
 robius-open = { git = "https://github.com/project-robius/robius-open", optional = true }
 
 ## Including this crate automatically configures all `robius-*` crates to work with Makepad.

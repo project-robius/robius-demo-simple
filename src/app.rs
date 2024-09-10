@@ -203,16 +203,15 @@ impl App {
             }
         }
 
-        log!("handling");
         if self.ui.button(id!(start_location_button)).clicked(&actions) {
-            log!("clicked");
-            let mut location_manager = robius_location::Manager::new(Handler);
-            location_manager.request_authorization();
-            std::thread::sleep(std::time::Duration::from_secs(2));
-            location_manager.start_updates();
+            use robius_location::{Access, Accuracy};
+            let mut location_manager = robius_location::Manager::new(Handler).unwrap();
+            location_manager.request_authorization(Access::Background, Accuracy::Precise).unwrap();
+            // std::thread::sleep(std::time::Duration::from_secs(4));
+            location_manager.start_updates().unwrap();
             self.location_manager = Some(location_manager);
         } else if self.ui.button(id!(stop_location_button)).clicked(&actions) {
-            self.location_manager.take().unwrap().stop_updates()
+            self.location_manager.take().unwrap();
         }
     }
 
