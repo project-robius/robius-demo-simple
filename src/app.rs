@@ -244,6 +244,11 @@ impl MatchEvent for App {
             self.ui.view(id!(auth_view)).set_visible(false);
         }
 
+        log!("{:#?}", directories::ProjectDirs::from_path(std::path::PathBuf::new()));
+        let temp = directories::ProjectDirs::from_path(std::path::PathBuf::new()).unwrap().preference_dir().join("hello");
+        std::fs::write(&temp, "abcd").unwrap();
+        log!("{:#?}", std::fs::read(temp));
+
         #[cfg(not(feature = "open"))]
         {
             warning!("The `open` feature is disabled.");
