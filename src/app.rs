@@ -111,7 +111,7 @@ impl LiveRegister for App {
 impl App {
     #[cfg(feature = "authentication")]
     fn handle_auth_action(&mut self, cx: &mut Cx, actions: &Actions) {
-        use robius_authentication::{AndroidText, PolicyBuilder, Text};
+        use robius_authentication::{Context, WindowsText, AndroidText, PolicyBuilder, Text};
 
         let label = self.ui.label(id!(auth_result));
         for action in actions {
@@ -148,7 +148,7 @@ impl App {
             .build()
             .expect("invalid policy configuration");
 
-        let context = robius_authentication::Context::new(());
+        let context = Context::new(());
         let auth_result = context.authenticate(
             Text {
                 android: AndroidText {
@@ -157,7 +157,7 @@ impl App {
                     description: None,
                 },
                 apple: message,
-                windows: robius_authentication::WindowsText::new("Auth Request (from robius-demo-simple)", message).unwrap(),
+                windows: WindowsText::new_truncated("Authentication Request", message),
             },
             &auth_policy,
             |result| {
