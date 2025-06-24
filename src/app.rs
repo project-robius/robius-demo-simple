@@ -37,6 +37,7 @@ live_design!{
                 <Label> {
                     text: "Robius Interactive Simple Demo App"
                     draw_text: { color: #e, text_style: { font_size: 16.0 } }
+
                 }
                 
                 <LineH> { }
@@ -51,7 +52,7 @@ live_design!{
                     auth_input = <TextInput> {
                         width: Fit, height: Fit
                         draw_text: { color: #f, text_style: { font_size: 12 } }
-                        empty_text: "Enter authentication prompt..."
+                        empty_text  : "Enter authentication prompt..."
                     }
 
                     auth_button = <Button> {
@@ -82,7 +83,7 @@ live_design!{
                     }
 
                     open_button = <Button> {
-                        text: "Open"    
+                        text: "Open"
                     }
 
                     <LineH> { }
@@ -110,15 +111,29 @@ impl LiveRegister for App {
 impl App {
     #[cfg(feature = "authentication")]
     fn handle_auth_action(&mut self, cx: &mut Cx, actions: &Actions) {
-        use robius_authentication::{AndroidText, BiometricStrength, PolicyBuilder, Text, WindowsText};
+        use robius_authentication::{AndroidText, PolicyBuilder, Text};
+
+        let label = self.ui.label(id!(auth_result));
+        for action in actions {
+            if let Some(AuthenticationAction::Completed(result)) = action.downcast_ref() {
+                match result {
+                    Ok(_) => {
+                        label.set_text(cx, "Authentication successful!");
+                    }
+                    Err(e) => {
+                        label.set_text(cx, &format!("Authentication failed: {e:?}"));
+                    }
+                }
+            }
+        }
 
         let auth_text_input = self.ui.text_input(id!(auth_input));
         let triggered_msg = if let Some((t, _)) = auth_text_input.returned(&actions) {
             t
-        } else if self.ui.button(id!(auth_button)).clicked(actions) {
+        } else if self.ui.button(id!(auth_button)).clicked(&actions) {
             auth_text_input.text()
         } else {
-            return;
+            return
         };
         let message = if triggered_msg.is_empty() {
             // The system will preface a message with "This app wants to..."
@@ -126,23 +141,15 @@ impl App {
         } else {
             triggered_msg.as_str()
         };
-
-        let label = self.ui.label(id!(auth_result));
+    
         log!("Authenticating with message {triggered_msg:?}");
 
-        #[cfg(not(feature = "authentication"))]
-        warning!("Authentication feature is disabled.");
         let auth_policy = PolicyBuilder::new()
-            .biometrics(Some(BiometricStrength::Strong))
-            .password(true)
-            .companion(true) // required in order to use the password option
             .build()
             .expect("invalid policy configuration");
 
-        // label.set_text_and_redraw(cx, "Waiting to authenticate...");
-        
         let context = robius_authentication::Context::new(());
-        let auth_result = context.blocking_authenticate(
+        let auth_result = context.authenticate(
             Text {
                 android: AndroidText {
                     title: message,
@@ -150,12 +157,24 @@ impl App {
                     description: None,
                 },
                 apple: message,
-                windows: WindowsText::new_truncated("Authentication Title", message),
+                windows: robius_authentication::WindowsText::new("Auth Request (from robius-demo-simple)", message).unwrap(),
             },
             &auth_policy,
+            |result| {
+                log!("Authentication result in callback: {result:?}");
+                Cx::post_action(AuthenticationAction::Completed(result));
+            }
         );
 
-        label.set_text(cx, &format!("Result: {auth_result:?}"));
+        match auth_result {
+            Ok(_) => {
+                label.set_text(cx, "Waiting for auth result...");
+            }
+            Err(e) => {
+                error!("Authentication failed to start: {e:?}");
+                label.set_text(cx, &format!("Authentication failed: {e:?}"));
+            }
+        } 
     }
 
 
@@ -180,7 +199,6 @@ impl App {
         }
     }
 }
-
 impl MatchEvent for App {
     fn handle_startup(&mut self, _cx: &mut Cx) {
         #[cfg(not(feature = "authentication"))] {
@@ -209,3 +227,12 @@ impl AppMain for App {
         self.ui.handle_event(cx, event, &mut Scope::empty());
     }
 } 
+
+
+/// Actions emitted from the authentication callback.
+#[cfg(feature = "authentication")]
+#[derive(Debug)]
+enum AuthenticationAction {
+    /// Authentication completed, either successfully or with an error.
+    Completed(robius_authentication::Result<()>),
+}
