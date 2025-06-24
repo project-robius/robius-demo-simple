@@ -1,9 +1,9 @@
 use makepad_widgets::*;
 
 live_design!{
-    import makepad_draw::shader::std::*;
-    import makepad_widgets::base::*;
-    import makepad_widgets::theme_desktop_dark::*; 
+    use link::theme::*;
+    use link::shaders::*;
+    use link::widgets::*;
 
     LineH = <RoundedView> {
         width: Fill,
@@ -37,7 +37,6 @@ live_design!{
                 <Label> {
                     text: "Robius Interactive Simple Demo App"
                     draw_text: { color: #e, text_style: { font_size: 16.0 } }
-
                 }
                 
                 <LineH> { }
@@ -52,7 +51,7 @@ live_design!{
                     auth_input = <TextInput> {
                         width: Fit, height: Fit
                         draw_text: { color: #f, text_style: { font_size: 12 } }
-                        empty_message: "Enter authentication prompt..."
+                        empty_text: "Enter authentication prompt..."
                     }
 
                     auth_button = <Button> {
@@ -79,11 +78,11 @@ live_design!{
                     open_input = <TextInput> {
                         width: Fit, height: Fit
                         draw_text: { color: #f, text_style: { font_size: 12 } }
-                        empty_message: "Enter URI..."
+                        empty_text: "Enter URI..."
                     }
 
                     open_button = <Button> {
-                        text: "Open"
+                        text: "Open"    
                     }
 
                     <LineH> { }
@@ -111,15 +110,15 @@ impl LiveRegister for App {
 impl App {
     #[cfg(feature = "authentication")]
     fn handle_auth_action(&mut self, cx: &mut Cx, actions: &Actions) {
-        use robius_authentication::{AndroidText, BiometricStrength, PolicyBuilder, Text};
+        use robius_authentication::{AndroidText, BiometricStrength, PolicyBuilder, Text, WindowsText};
 
         let auth_text_input = self.ui.text_input(id!(auth_input));
-        let triggered_msg = if let Some(s) = auth_text_input.returned(&actions) {
-            s
-        } else if self.ui.button(id!(auth_button)).clicked(&actions) {
+        let triggered_msg = if let Some((t, _)) = auth_text_input.returned(&actions) {
+            t
+        } else if self.ui.button(id!(auth_button)).clicked(actions) {
             auth_text_input.text()
         } else {
-            return
+            return;
         };
         let message = if triggered_msg.is_empty() {
             // The system will preface a message with "This app wants to..."
@@ -127,7 +126,7 @@ impl App {
         } else {
             triggered_msg.as_str()
         };
-    
+
         let label = self.ui.label(id!(auth_result));
         log!("Authenticating with message {triggered_msg:?}");
 
@@ -136,7 +135,7 @@ impl App {
         let auth_policy = PolicyBuilder::new()
             .biometrics(Some(BiometricStrength::Strong))
             .password(true)
-            .watch(true) // required in order to use the password option
+            .companion(true) // required in order to use the password option
             .build()
             .expect("invalid policy configuration");
 
@@ -151,20 +150,20 @@ impl App {
                     description: None,
                 },
                 apple: message,
-                windows: message,
+                windows: WindowsText::new_truncated("Authentication Title", message),
             },
             &auth_policy,
         );
 
-        label.set_text_and_redraw(cx, &format!("Result: {auth_result:?}"));
+        label.set_text(cx, &format!("Result: {auth_result:?}"));
     }
 
 
     #[cfg(feature = "open")]
     fn handle_open_action(&mut self, _cx: &mut Cx, actions: &Actions) {
         let open_text_input = self.ui.text_input(id!(open_input));
-        let uri = if let Some(s) = open_text_input.returned(&actions) {
-            s
+        let uri = if let Some((t, _)) = open_text_input.returned(&actions) {
+            t
         } else if self.ui.button(id!(open_button)).clicked(&actions) {
             open_text_input.text()
         } else {
@@ -181,6 +180,7 @@ impl App {
         }
     }
 }
+
 impl MatchEvent for App {
     fn handle_startup(&mut self, _cx: &mut Cx) {
         #[cfg(not(feature = "authentication"))] {

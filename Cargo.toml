@@ -1,19 +1,21 @@
 [package]
 name = "robius-demo-simple"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Kevin Boos <kevinaboos@gmail.com>"]
 edition = "2021"
-description = "Simple demo of Robius platform abstraction crates from a Makepad app"
+description = "Simple demo of using Robius platform abstraction crates from a Makepad app"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-makepad-widgets = { git = "https://github.com/makepad/makepad", branch = "rik" }
+makepad-widgets = { git = "https://github.com/makepad/makepad", branch = "dev" }
 
-robius-authentication = { git = "https://github.com/project-robius/robius-authentication", optional = true }
-robius-open = { git = "https://github.com/project-robius/robius-open", optional = true }
+# robius-authentication = { git = "https://github.com/project-robius/robius-authentication", optional = true }
+robius-authentication = { path = "../robius-authentication", optional = true }
+# robius-open = { git = "https://github.com/project-robius/robius-open", optional = true }
+robius-open = { path = "../robius-open", optional = true }
 
 ## Including this crate automatically configures all `robius-*` crates to work with Makepad.
-robius-use-makepad = "0.1.0"
+robius-use-makepad = "0.1.1"
 
 [features]
 default = ["authentication", "open"]
