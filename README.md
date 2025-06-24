@@ -16,7 +16,7 @@ cargo run
 To build for Android, you need to first install the `cargo makepad` build tool,
 and then use it to installe the Android SDK + NDK.
 ```sh
-cargo install --force --locked --git https://github.com/makepad/makepad.git --branch rik cargo-makepad
+cargo install --force --locked --git https://github.com/makepad/makepad.git --branch dev cargo-makepad
 ```
 ```sh
 cargo makepad android install-toolchain --full-ndk

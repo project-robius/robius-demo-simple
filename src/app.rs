@@ -1,9 +1,9 @@
 use makepad_widgets::*;
 
 live_design!{
-    import makepad_draw::shader::std::*;
-    import makepad_widgets::base::*;
-    import makepad_widgets::theme_desktop_dark::*; 
+    use link::theme::*;
+    use link::shaders::*;
+    use link::widgets::*;
 
     LineH = <RoundedView> {
         width: Fill,
@@ -52,7 +52,7 @@ live_design!{
                     auth_input = <TextInput> {
                         width: Fit, height: Fit
                         draw_text: { color: #f, text_style: { font_size: 12 } }
-                        empty_message: "Enter authentication prompt..."
+                        empty_text  : "Enter authentication prompt..."
                     }
 
                     auth_button = <Button> {
@@ -79,7 +79,7 @@ live_design!{
                     open_input = <TextInput> {
                         width: Fit, height: Fit
                         draw_text: { color: #f, text_style: { font_size: 12 } }
-                        empty_message: "Enter URI..."
+                        empty_text: "Enter URI..."
                     }
 
                     open_button = <Button> {
@@ -111,11 +111,25 @@ impl LiveRegister for App {
 impl App {
     #[cfg(feature = "authentication")]
     fn handle_auth_action(&mut self, cx: &mut Cx, actions: &Actions) {
-        use robius_authentication::{AndroidText, BiometricStrength, PolicyBuilder, Text};
+        use robius_authentication::{Context, WindowsText, AndroidText, PolicyBuilder, Text};
+
+        let label = self.ui.label(id!(auth_result));
+        for action in actions {
+            if let Some(AuthenticationAction::Completed(result)) = action.downcast_ref() {
+                match result {
+                    Ok(_) => {
+                        label.set_text(cx, "Authentication successful!");
+                    }
+                    Err(e) => {
+                        label.set_text(cx, &format!("Authentication failed: {e:?}"));
+                    }
+                }
+            }
+        }
 
         let auth_text_input = self.ui.text_input(id!(auth_input));
-        let triggered_msg = if let Some(s) = auth_text_input.returned(&actions) {
-            s
+        let triggered_msg = if let Some((t, _)) = auth_text_input.returned(&actions) {
+            t
         } else if self.ui.button(id!(auth_button)).clicked(&actions) {
             auth_text_input.text()
         } else {
@@ -128,22 +142,14 @@ impl App {
             triggered_msg.as_str()
         };
     
-        let label = self.ui.label(id!(auth_result));
         log!("Authenticating with message {triggered_msg:?}");
 
-        #[cfg(not(feature = "authentication"))]
-        warning!("Authentication feature is disabled.");
         let auth_policy = PolicyBuilder::new()
-            .biometrics(Some(BiometricStrength::Strong))
-            .password(true)
-            .watch(true) // required in order to use the password option
             .build()
             .expect("invalid policy configuration");
 
-        // label.set_text_and_redraw(cx, "Waiting to authenticate...");
-        
-        let context = robius_authentication::Context::new(());
-        let auth_result = context.blocking_authenticate(
+        let context = Context::new(());
+        let auth_result = context.authenticate(
             Text {
                 android: AndroidText {
                     title: message,
@@ -151,20 +157,32 @@ impl App {
                     description: None,
                 },
                 apple: message,
-                windows: robius_authentication::WindowsText::new_truncated("Authentication Request", message),
+                windows: WindowsText::new_truncated("Authentication Request", message),
             },
             &auth_policy,
+            |result| {
+                log!("Authentication result in callback: {result:?}");
+                Cx::post_action(AuthenticationAction::Completed(result));
+            }
         );
 
-        label.set_text_and_redraw(cx, &format!("Result: {auth_result:?}"));
+        match auth_result {
+            Ok(_) => {
+                label.set_text(cx, "Waiting for auth result...");
+            }
+            Err(e) => {
+                error!("Authentication failed to start: {e:?}");
+                label.set_text(cx, &format!("Authentication failed: {e:?}"));
+            }
+        } 
     }
 
 
     #[cfg(feature = "open")]
     fn handle_open_action(&mut self, _cx: &mut Cx, actions: &Actions) {
         let open_text_input = self.ui.text_input(id!(open_input));
-        let uri = if let Some(s) = open_text_input.returned(&actions) {
-            s
+        let uri = if let Some((t, _)) = open_text_input.returned(&actions) {
+            t
         } else if self.ui.button(id!(open_button)).clicked(&actions) {
             open_text_input.text()
         } else {
@@ -209,3 +227,12 @@ impl AppMain for App {
         self.ui.handle_event(cx, event, &mut Scope::empty());
     }
 } 
+
+
+/// Actions emitted from the authentication callback.
+#[cfg(feature = "authentication")]
+#[derive(Debug)]
+enum AuthenticationAction {
+    /// Authentication completed, either successfully or with an error.
+    Completed(robius_authentication::Result<()>),
+}
