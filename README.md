@@ -1,8 +1,9 @@
 # robius-demo
 
 This is a simple Makepad app that demonstrates various Robius platform abstraction crates:
-* [`robius-authentication`](https://github.com/project-robius/robius-authentication)
-* [`robius-open`](https://github.com/project-robius/robius-open)
+* [`robius-authentication`](https://github.com/project-robius/robius)
+* [`robius-open`](https://github.com/project-robius/robius)
+* [`robius-location`](https://github.com/project-robius/robius)
 
 ## Building and running
 
@@ -12,6 +13,13 @@ On native desktop, simply run:
 cargo run
 ```
 
+> [!IMPORTANT]
+> Certain platform APIs/services require a fully codesigned application bundle on certain platforms.
+>
+> For example, location services do not work on macOS unless the application has been bundled and packaged.
+> See [how we do this for Robrix](https://github.com/project-robius/robrix/blob/fc8bedf767caab88709b6efb31719e6817eb2f39/README.md#packaging-robrix-for-distribution-on-desktop-platforms), a similar Makepad + Robius app.
+
+
 ### Cross-compiling for Android
 To build for Android, you need to first install the `cargo makepad` build tool,
 and then use it to installe the Android SDK + NDK.
@@ -19,7 +27,7 @@ and then use it to installe the Android SDK + NDK.
 cargo install --force --locked --git https://github.com/makepad/makepad.git --branch dev cargo-makepad
 ```
 ```sh
-cargo makepad android install-toolchain --full-ndk
+cargo makepad android install-toolchain
 ```
 > You only need to run the above commands once on your build machine.
 
